@@ -1,4 +1,4 @@
-# Seedphrase Recovery Tool
+<h1 align="center">Seedphrase Recovery Tool</h1>
 
 A powerful and flexible tool for recovering lost or partial seed phrases for various cryptocurrency networks including EVM, Solana, Pi Network, Tron, and Dogecoin.
 
@@ -18,6 +18,8 @@ A powerful and flexible tool for recovering lost or partial seed phrases for var
 
 ### 🐧 For Linux Users
 If you are using Ubuntu, Debian, or any other Linux distribution, you are good to go!
+
+https://github.com/user-attachments/assets/5bf8a51d-b7da-4715-9272-2fe57a53fcc5
 
 1.  **Install Prerequisites**:
     If you don't have `curl` installed, run:
@@ -51,7 +53,7 @@ You have two easy options to run this tool on Windows:
 
 #### Option A: Use GitHub Codespaces (Easiest - No Installation Required)
 1.  Go to [GitHub Codespaces](https://github.com/codespaces).
-2.  Click **"New codespace"** and select a **Blank** template.
+2.  Choose **blank template"** and click on **use this template** button.
 3.  In the terminal that opens, copy and paste the commands from the **Linux Users** section above.
 
 #### Option B: Use WSL (Ubuntu on Windows)
