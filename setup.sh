@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -o pipefail
+ORIGINAL_DIR=$(pwd)
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -330,9 +331,7 @@ echo ""
 echo -e "${GREEN}Setup Complete!${NC}"
 echo ""
 
-if [ -f "./bin/seedphrase_recovery" ]; then
-    RUN_CMD="./bin/seedphrase_recovery"
-elif [ -d "seedphrase-recovery-tool" ] && [ -f "seedphrase-recovery-tool/bin/seedphrase_recovery" ]; then
+if [ "$PWD" != "$ORIGINAL_DIR" ]; then
     RUN_CMD="cd seedphrase-recovery-tool && ./bin/seedphrase_recovery"
 else
     RUN_CMD="./bin/seedphrase_recovery"
