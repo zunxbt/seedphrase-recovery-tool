@@ -87,7 +87,7 @@ graph TD
     MissingCount -->|Other| Exit
 
     EnterKnown --> ValidateWords{Validate Words}
-    ValidateWords -->|Invalid| ErrorExit([Error & Exit])
+    ValidateWords -->|Invalid| EnterKnown
     ValidateWords -->|Valid| KnownPositions{Known Positions?}
 
     KnownPositions -->|Yes| EnterPositions[Enter Positions]
@@ -170,4 +170,4 @@ The author/owner is NOT responsible for any misuse, illegal activities, or damag
 
 ## Contact
 
-If you need any help, contact **Zun**: [https://x.com/zun2025](https://x.com/zun2025)
+If you need any help, contact **Zun** on X : [https://x.com/Zun2025](https://x.com/Zun2025)

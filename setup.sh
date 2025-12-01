@@ -67,26 +67,87 @@ show_header() {
 show_progress() {
     local current=$1
     local total=$2
-    local width=40
-    local percentage=$((current * 100 / total))
-    local filled=$((percentage * width / 100))
-    local empty=$((width - filled))
     
-    local bar=""
-    if [ $filled -gt 0 ]; then
-        bar=$(printf "%0.s#" $(seq 1 $filled))
-    fi
-    local space=""
-    if [ $empty -gt 0 ]; then
-        space=$(printf "%0.s-" $(seq 1 $empty))
-    fi
+    local term_width=$(tput cols)
+    local width=$((term_width - 25))
+    if [ $width -lt 20 ]; then width=20; fi
+    if [ $width -gt 60 ]; then width=60; fi
     
-    echo -e "${CYAN}[${bar}${space}] ${percentage}%${NC}"
+    local prev_step=$((current - 1))
+    if [ $prev_step -lt 0 ]; then prev_step=0; fi
+    
+    local start_pct=$((prev_step * 100 / total))
+    local end_pct=$((current * 100 / total))
+    
+    tput civis
+    
+    for (( p=start_pct; p<=end_pct; p++ )); do
+        local filled=$((p * width / 100))
+        local empty=$((width - filled))
+        
+        local bar=""
+        if [ $filled -gt 0 ]; then
+            printf -v bar "%${filled}s" ""
+            bar=${bar// /█}
+        fi
+        
+        local space=""
+        if [ $empty -gt 0 ]; then
+            printf -v space "%${empty}s" ""
+            space=${space// /░}
+        fi
+        
+        echo -ne "\r${CYAN}Progress: ${bar}${space} ${p}%${NC}"
+        sleep 0.015
+    done
+    
+    tput cnorm
+    echo ""
 }
 
-run_silent() {
-    "$@" > "$LOG_FILE" 2>&1
+run_animated() {
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    
+    tput cuu 3
+    tput civis
+
+    "$@" 2>&1 | {
+        local l1=""
+        local l2=""
+        local l3=""
+        
+        while IFS= read -r line; do
+            echo "$line" >> "$LOG_FILE"
+            
+            local width=$(tput cols)
+            local max_len=$((width - 5))
+            if [ ${#line} -gt $max_len ]; then
+                line="${line:0:$max_len}..."
+            fi
+            
+            l1="$l2"
+            l2="$l3"
+            l3="$line"
+            
+            echo -ne "\r\033[K\033[90m${l1}\033[0m\n"
+            echo -ne "\r\033[K\033[37m${l2}\033[0m\n"
+            echo -ne "\r\033[K\033[1;37m${l3}\033[0m\n"
+            
+            echo -ne "\033[3A"
+        done
+    }
     local status=$?
+    
+    echo -ne "\r\033[K\n"
+    echo -ne "\r\033[K\n"
+    echo -ne "\r\033[K"
+    echo -ne "\033[3A"
+    echo -ne "\033[1A\r\033[K"
+    
+    tput cnorm
     
     if [ $status -ne 0 ]; then
         echo -e "${RED}Failed!${NC}"
@@ -219,7 +280,7 @@ add_to_shell_config() {
 
 if [ "$OS" == "Linux" ]; then
     echo -e "${YELLOW}Step 1/$TOTAL_STEPS: System Dependencies${NC}"
-    run_silent install_linux_deps
+    run_animated install_linux_deps
     CURRENT_STEP=1
     show_progress $CURRENT_STEP $TOTAL_STEPS
 
@@ -232,17 +293,17 @@ if [ "$OS" == "Linux" ]; then
             rm -rf seedphrase-recovery-tool
         fi
         
-        run_silent git clone "$REPO_URL"
+        run_animated git clone "$REPO_URL"
         cd seedphrase-recovery-tool || exit 1
     fi
     
     echo -e "${YELLOW}Step 2/$TOTAL_STEPS: Rust Toolchain${NC}"
-    run_silent install_rust
+    run_animated install_rust
     CURRENT_STEP=2
     show_progress $CURRENT_STEP $TOTAL_STEPS
     
     echo -e "${YELLOW}Step 3/$TOTAL_STEPS: Foundry${NC}"
-    run_silent install_foundry
+    run_animated install_foundry
     CURRENT_STEP=3
     show_progress $CURRENT_STEP $TOTAL_STEPS
     
@@ -261,13 +322,22 @@ if ! command -v cargo &> /dev/null; then
     exit 1
 fi
 
-run_silent cargo fetch
+run_animated cargo fetch
 CURRENT_STEP=4
 show_progress $CURRENT_STEP $TOTAL_STEPS
 
 echo ""
 echo -e "${GREEN}Setup Complete!${NC}"
-echo -e "You can now run the tool using: ${YELLOW}./bin/seedphrase_recovery${NC}"
-if [ "$PWD" != "$OLDPWD" ]; then
-    echo -e "(Note: You are currently in $(pwd). The tool is inside this directory.)"
+echo ""
+
+if [ -f "./bin/seedphrase_recovery" ]; then
+    RUN_CMD="./bin/seedphrase_recovery"
+elif [ -d "seedphrase-recovery-tool" ] && [ -f "seedphrase-recovery-tool/bin/seedphrase_recovery" ]; then
+    RUN_CMD="cd seedphrase-recovery-tool && ./bin/seedphrase_recovery"
+else
+    RUN_CMD="./bin/seedphrase_recovery"
 fi
+
+echo -e "You can now run the tool using:"
+echo -e "${YELLOW}${RUN_CMD}${NC}"
+echo ""
